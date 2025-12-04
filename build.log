@@ -1,0 +1,214 @@
+warning: unused imports: `SystemTime` and `UNIX_EPOCH`
+ --> src/interpreter.rs:5:17
+  |
+5 | use std::time::{SystemTime, UNIX_EPOCH};
+  |                 ^^^^^^^^^^  ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable pattern
+   --> src/interpreter.rs:198:13
+    |
+154 |             Statement::VariableDeclaration { name, var_type: _, value, mutable } => {
+    |             -------------------------------------------------------------------- matches all the relevant values
+...
+198 |             Statement::VariableDeclaration { name, var_type: _, value, mutable } => {
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no value can reach this
+    |
+    = note: `#[warn(unreachable_patterns)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `mutable`
+   --> src/interpreter.rs:154:72
+    |
+154 |             Statement::VariableDeclaration { name, var_type: _, value, mutable } => {
+    |                                                                        ^^^^^^^ help: try ignoring the field: `mutable: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `old_variables`
+   --> src/interpreter.rs:210:21
+    |
+210 |                 let old_variables = self.variables.clone();
+    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_old_variables`
+
+warning: method `peek_token_is` is never used
+  --> src/parser.rs:67:8
+   |
+25 | impl<'a> Parser<'a> {
+   | ------------------- method in this implementation
+...
+67 |     fn peek_token_is(&self, token: &Token) -> bool {
+   |        ^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `aetos-compiler` (lib) generated 5 warnings (run `cargo fix --lib -p aetos-compiler` to apply 3 suggestions)
+   Compiling aetos-compiler v0.3.0 (/home/orsash/aetos-compiler)
+warning: variant `VariableAlreadyMoved` is never constructed
+  --> src/typecheck.rs:40:5
+   |
+ 8 | pub enum TypeCheckError {
+   |          -------------- variant in this enum
+...
+40 |     VariableAlreadyMoved { name: String },
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `TypeCheckError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: enum `CodeGenError` is never used
+ --> src/codegen/mod.rs:8:10
+  |
+8 | pub enum CodeGenError {
+  |          ^^^^^^^^^^^^
+
+warning: trait `CodeGenerator` is never used
+  --> src/codegen/mod.rs:13:11
+   |
+13 | pub trait CodeGenerator {
+   |           ^^^^^^^^^^^^^
+
+warning: struct `WasmGenerator` is never constructed
+ --> src/codegen/wasm.rs:5:12
+  |
+5 | pub struct WasmGenerator {
+  |            ^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/codegen/wasm.rs:18:12
+    |
+ 17 | impl WasmGenerator {
+    | ------------------ associated items in this implementation
+ 18 |     pub fn new() -> Self {
+    |            ^^^
+...
+ 32 |     pub fn generate(&mut self, program: &Program) -> String {
+    |            ^^^^^^^^
+...
+ 61 |     fn generate_type_section(&mut self, program: &Program) {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+...
+ 78 |     fn generate_function_section(&mut self, program: &Program) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+108 |     fn generate_export_section(&mut self, program: &Program) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+...
+123 |     fn generate_code_section(&mut self, program: &Program) {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+...
+150 |     pub fn generate_statement(&mut self, statement: &Statement) {
+    |            ^^^^^^^^^^^^^^^^^^
+...
+255 |     fn generate_expression(&mut self, expression: &Expression) {
+    |        ^^^^^^^^^^^^^^^^^^^
+...
+358 |     fn type_to_wasm(&self, ty: &Type) -> String {
+    |        ^^^^^^^^^^^^
+
+warning: function `get_stdlib` is never used
+ --> src/stdlib.rs:3:8
+  |
+3 | pub fn get_stdlib() -> Program {
+  |        ^^^^^^^^^^
+
+warning: associated function `new` is never used
+  --> src/optimize.rs:22:12
+   |
+21 | impl Optimizer {
+   | -------------- associated function in this implementation
+22 |     pub fn new() -> Self {
+   |            ^^^
+
+warning: field `start_time` is never read
+  --> src/graphics_engine.rs:13:5
+   |
+ 5 | pub struct GraphicsEngine {
+   |            -------------- field in this struct
+...
+13 |     start_time: f64,
+   |     ^^^^^^^^^^
+
+warning: methods `get_time`, `get_mouse_pos`, `is_mouse_button_pressed`, `get_mouse_x`, and `get_mouse_y` are never used
+   --> src/graphics_engine.rs:155:12
+    |
+ 16 | impl GraphicsEngine {
+    | ------------------- methods in this implementation
+...
+155 |     pub fn get_time(&self) -> f64 {
+    |            ^^^^^^^^
+...
+167 |     pub fn get_mouse_pos(&self) -> (i32, i32) {
+    |            ^^^^^^^^^^^^^
+...
+171 |     pub fn is_mouse_button_pressed(&self, button: usize) -> bool {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+...
+179 |     pub fn get_mouse_x(&self) -> i32 {
+    |            ^^^^^^^^^^^
+...
+183 |     pub fn get_mouse_y(&self) -> i32 {
+    |            ^^^^^^^^^^^
+
+warning: field `0` is never read
+  --> src/interpreter.rs:15:12
+   |
+15 |     Struct(String, HashMap<String, RuntimeValue>),
+   |     ------ ^^^^^^
+   |     |
+   |     field in this variant
+   |
+   = note: `RuntimeValue` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+help: consider changing the field to be of unit type to suppress this warning while preserving the field numbering, or remove the field
+   |
+15 -     Struct(String, HashMap<String, RuntimeValue>),
+15 +     Struct((), HashMap<String, RuntimeValue>),
+   |
+
+warning: `aetos-compiler` (bin "aetosc") generated 15 warnings (5 duplicates)
+    Finished `release` profile [optimized] target(s) in 3.20s
+warning: unused imports: `SystemTime` and `UNIX_EPOCH`
+ --> src/interpreter.rs:5:17
+  |
+5 | use std::time::{SystemTime, UNIX_EPOCH};
+  |                 ^^^^^^^^^^  ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable pattern
+   --> src/interpreter.rs:198:13
+    |
+154 |             Statement::VariableDeclaration { name, var_type: _, value, mutable } => {
+    |             -------------------------------------------------------------------- matches all the relevant values
+...
+198 |             Statement::VariableDeclaration { name, var_type: _, value, mutable } => {
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no value can reach this
+    |
+    = note: `#[warn(unreachable_patterns)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `mutable`
+   --> src/interpreter.rs:154:72
+    |
+154 |             Statement::VariableDeclaration { name, var_type: _, value, mutable } => {
+    |                                                                        ^^^^^^^ help: try ignoring the field: `mutable: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `old_variables`
+   --> src/interpreter.rs:210:21
+    |
+210 |                 let old_variables = self.variables.clone();
+    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_old_variables`
+
+warning: method `peek_token_is` is never used
+  --> src/parser.rs:67:8
+   |
+25 | impl<'a> Parser<'a> {
+   | ------------------- method in this implementation
+...
+67 |     fn peek_token_is(&self, token: &Token) -> bool {
+   |        ^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `aetos-compiler` (lib) generated 5 warnings (run `cargo fix --lib -p aetos-compiler` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.20s

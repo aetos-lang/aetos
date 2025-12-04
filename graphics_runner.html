@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aetos Graphics Runner</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #1a1a1a; color: white; font-family: Arial; }
+        canvas { border: 2px solid #333; background: black; }
+        .controls { margin: 10px 0; }
+        button { padding: 8px 16px; margin: 5px; background: #444; color: white; border: none; cursor: pointer; }
+        button:hover { background: #555; }
+        select, input { padding: 8px; background: #333; color: white; border: 1px solid #555; }
+    </style>
+</head>
+<body>
+    <h1>Aetos Graphics Runner</h1>
+    <div class="controls">
+        <select id="programSelect">
+            <option value="bouncing_ball.wasm">Bouncing Ball</option>
+            <option value="particles.wasm">Particles</option>
+            <option value="paint.wasm">Simple Paint</option>
+        </select>
+        <button onclick="loadProgram()">Load Program</button>
+        <button onclick="stopProgram()">Stop</button>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="status">Select a program and click Load</div>
+
+    <script>
+        let currentInstance = null;
+        let animationFrame = null;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        
+        // Графический буфер в памяти
+        const width = 800;
+        const height = 600;
+        const buffer = new Uint8Array(width * height * 4);
+        const imageData = ctx.createImageData(width, height);
+        
+        // Состояние ввода
+        const keys = new Set();
+        const mouse = { x: 0, y: 0, buttons: 0 };
+        
+        // Обработчики событий
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('mousedown', (e) => {
+            mouse.buttons |= 1 << (e.button);
+        });
+        
+        canvas.addEventListener('mouseup', (e) => {
+            mouse.buttons &= ~(1 << (e.button));
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            keys.add(e.keyCode);
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys.delete(e.keyCode);
+        });
+        
+        // Функции графического API для WASM
+        const graphicsImports = {
+            init_graphics: (w, h, titlePtr) => {
+                statusDiv.textContent = `Graphics initialized: ${w}x${h}`;
+            },
+            
+            clear_screen: (r, g, b) => {
+                // Заполняем буфер цветом
+                const color = [r, g, b, 255];
+                for (let i = 0; i < buffer.length; i += 4) {
+                    buffer.set(color, i);
+                }
+            },
+            
+            draw_pixel: (x, y, r, g, b) => {
+                if (x >= 0 && x < width && y >= 0 && y < height) {
+                    const index = (y * width + x) * 4;
+                    buffer[index] = r;
+                    buffer[index + 1] = g;
+                    buffer[index + 2] = b;
+                    buffer[index + 3] = 255;
+                }
+            },
+            
+            draw_rect: (x, y, w, h, r, g, b) => {
+                for (let py = y; py < y + h; py++) {
+                    for (let px = x; px < x + w; px++) {
+                        if (px >= 0 && px < width && py >= 0 && py < height) {
+                            const index = (py * width + px) * 4;
+                            buffer[index] = r;
+                            buffer[index + 1] = g;
+                            buffer[index + 2] = b;
+                            buffer[index + 3] = 255;
+                        }
+                    }
+                }
+            },
+            
+            draw_circle: (cx, cy, radius, r, g, b) => {
+                for (let y = cy - radius; y <= cy + radius; y++) {
+                    for (let x = cx - radius; x <= cx + radius; x++) {
+                        const dx = x - cx;
+                        const dy = y - cy;
+                        if (dx * dx + dy * dy <= radius * radius) {
+                            if (x >= 0 && x < width && y >= 0 && y < height) {
+                                const index = (y * width + x) * 4;
+                                buffer[index] = r;
+                                buffer[index + 1] = g;
+                                buffer[index + 2] = b;
+                                buffer[index + 3] = 255;
+                            }
+                        }
+                    }
+                }
+            },
+            
+            draw_line: (x1, y1, x2, y2, r, g, b) => {
+                const dx = Math.abs(x2 - x1);
+                const dy = Math.abs(y2 - y1);
+                const sx = (x1 < x2) ? 1 : -1;
+                const sy = (y1 < y2) ? 1 : -1;
+                let err = dx - dy;
+                
+                while (true) {
+                    if (x1 >= 0 && x1 < width && y1 >= 0 && y1 < height) {
+                        const index = (y1 * width + x1) * 4;
+                        buffer[index] = r;
+                        buffer[index + 1] = g;
+                        buffer[index + 2] = b;
+                        buffer[index + 3] = 255;
+                    }
+                    
+                    if (x1 === x2 && y1 === y2) break;
+                    const e2 = 2 * err;
+                    if (e2 > -dy) { err -= dy; x1 += sx; }
+                    if (e2 < dx) { err += dx; y1 += sy; }
+                }
+            },
+            
+            render: () => {
+                // Копируем буфер в canvas
+                imageData.data.set(buffer);
+                ctx.putImageData(imageData, 0, 0);
+            },
+            
+            get_time: () => {
+                return performance.now() / 1000.0;
+            },
+            
+            is_key_pressed: (keyCode) => {
+                return keys.has(keyCode) ? 1 : 0;
+            },
+            
+            get_mouse_pos: () => {
+                // Возвращаем указатель на структуру Point в памяти WASM
+                if (currentInstance) {
+                    const memory = new Uint32Array(currentInstance.exports.memory.buffer);
+                    // Записываем x и y в память
+                    memory[0] = mouse.x;
+                    memory[1] = mouse.y;
+                    return 0; // указатель на структуру
+                }
+                return 0;
+            },
+            
+            sleep: (ms) => {
+                // В браузере sleep не рекомендуется, поэтому просто пропускаем кадры
+                return;
+            }
+        };
+        
+        async function loadProgram() {
+            stopProgram();
+            
+            const programName = document.getElementById('programSelect').value;
+            statusDiv.textContent = `Loading ${programName}...`;
+            
+            try {
+                const response = await fetch(`examples/${programName}`);
+                const bytes = await response.arrayBuffer();
+                
+                const imports = {
+                    env: {
+                        print_i32: (value) => console.log('Output:', value),
+                        print_string: (ptr) => console.log('String output'),
+                    },
+                    graphics: graphicsImports
+                };
+                
+                const module = await WebAssembly.instantiate(bytes, imports);
+                currentInstance = module.instance;
+                
+                statusDiv.textContent = `Running ${programName}`;
+                
+                // Запускаем main функцию если она есть
+                if (currentInstance.exports.main) {
+                    // Запускаем в цикле анимации
+                    function runFrame() {
+                        try {
+                            currentInstance.exports.main();
+                            animationFrame = requestAnimationFrame(runFrame);
+                        } catch (e) {
+                            statusDiv.textContent = `Program finished or error: ${e}`;
+                        }
+                    }
+                    animationFrame = requestAnimationFrame(runFrame);
+                }
+            } catch (e) {
+                statusDiv.textContent = `Error loading program: ${e}`;
+                console.error(e);
+            }
+        }
+        
+        function stopProgram() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            if (currentInstance) {
+                currentInstance = null;
+            }
+            statusDiv.textContent = 'Program stopped';
+        }
+        
+        // Автозагрузка при открытии страницы
+        window.addEventListener('load', () => {
+            statusDiv.textContent = 'Ready to load programs';
+        });
+    </script>
+</body>
+</html>

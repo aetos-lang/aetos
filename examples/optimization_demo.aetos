@@ -1,0 +1,10 @@
+// Демонстрация оптимизаций
+fn main() -> i32 {
+    // Constant folding: 2 + 3 * 4 будет заменено на 14
+    let computed: i32 = 2 + 3 * 4;
+    
+    // Dead code: эта переменная не используется
+    let unused: i32 = 100;
+    
+    return computed;
+}

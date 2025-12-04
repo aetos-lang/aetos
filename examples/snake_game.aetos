@@ -1,0 +1,185 @@
+struct Point {
+    x: i32,
+    y: i32
+}
+
+struct Color {
+    r: i32,
+    g: i32,
+    b: i32
+}
+
+fn main() -> i32 {
+    init_graphics(600, 600, "Snake Game");
+    
+    // Змейка
+    let snake: [Point; 100] = [Point { x: 0, y: 0 }; 100];
+    let snake_length: i32 = 3;
+    let direction: i32 = 0; // 0=right, 1=down, 2=left, 3=up
+    
+    // Инициализация змейки
+    let i: i32 = 0;
+    while i < snake_length {
+        snake[i] = Point { x: 100 - i * 20, y: 100 };
+        i = i + 1;
+    }
+    
+    // Еда
+    let food: Point = Point { x: 200, y: 200 };
+    let score: i32 = 0;
+    let game_speed: i32 = 100;
+    
+    while true {
+        // Обработка управления
+        if is_key_pressed(37) { // Left
+            direction = 2;
+        }
+        if is_key_pressed(39) { // Right
+            direction = 0;
+        }
+        if is_key_pressed(38) { // Up
+            direction = 3;
+        }
+        if is_key_pressed(40) { // Down
+            direction = 1;
+        }
+        
+        // Двигаем змейку
+        let i: i32 = snake_length - 1;
+        while i > 0 {
+            snake[i] = snake[i - 1];
+            i = i - 1;
+        }
+        
+        // Обновляем голову
+        if direction == 0 {
+            snake[0] = Point { x: snake[0].x + 20, y: snake[0].y };
+        }
+        if direction == 1 {
+            snake[0] = Point { x: snake[0].x, y: snake[0].y + 20 };
+        }
+        if direction == 2 {
+            snake[0] = Point { x: snake[0].x - 20, y: snake[0].y };
+        }
+        if direction == 3 {
+            snake[0] = Point { x: snake[0].x, y: snake[0].y - 20 };
+        }
+        
+        // Проверка столкновения с едой
+        if snake[0].x == food.x && snake[0].y == food.y {
+            snake_length = snake_length + 1;
+            score = score + 10;
+            
+            // Новая еда
+            food.x = ((get_time() * 1000.0) as i32 % 30) * 20;
+            food.y = ((get_time() * 1000.0) as i32 % 30) * 20;
+        }
+        
+        // Проверка столкновения со стенами
+        if snake[0].x < 0 || snake[0].x >= 600 || snake[0].y < 0 || snake[0].y >= 600 {
+            // Рестарт игры
+            snake_length = 3;
+            score = 0;
+            direction = 0;
+            
+            let i: i32 = 0;
+            while i < snake_length {
+                snake[i] = Point { x: 100 - i * 20, y: 100 };
+                i = i + 1;
+            }
+        }
+        
+        // Проверка столкновения с собой
+        let i: i32 = 1;
+        while i < snake_length {
+            if snake[0].x == snake[i].x && snake[0].y == snake[i].y {
+                // Рестарт игры
+                snake_length = 3;
+                score = 0;
+                direction = 0;
+                
+                let j: i32 = 0;
+                while j < snake_length {
+                    snake[j] = Point { x: 100 - j * 20, y: 100 };
+                    j = j + 1;
+                }
+                break;
+            }
+            i = i + 1;
+        }
+        
+        // Отрисовка
+        clear_screen(0, 0, 0);
+        
+        // Рисуем змейку
+        let i: i32 = 0;
+        while i < snake_length {
+            let color: Color;
+            if i == 0 {
+                color = Color { r: 0, g: 255, b: 0 }; // Голова - зеленая
+            } else {
+                color = Color { r: 0, g: 200, b: 0 }; // Тело - темно-зеленая
+            }
+            draw_rect(snake[i].x, snake[i].y, 18, 18, color.r, color.g, color.b);
+            i = i + 1;
+        }
+        
+        // Рисуем еду
+        draw_rect(food.x, food.y, 18, 18, 255, 0, 0);
+        
+        // Рисуем счет
+        draw_text(score, 10, 10);
+        
+        render();
+        sleep(game_speed);
+    }
+    
+    return 0;
+}
+
+// Простая функция для отрисовки текста (цифр)
+fn draw_text(value: i32, x: i32, y: i32) {
+    let digits: [i32; 10] = [0; 10];
+    let num: i32 = value;
+    let count: i32 = 0;
+    
+    // Разбиваем число на цифры
+    let temp: i32 = num;
+    while temp > 0 {
+        digits[count] = temp % 10;
+        count = count + 1;
+        temp = temp / 10;
+    }
+    
+    // Рисуем цифры
+    let i: i32 = count - 1;
+    while i >= 0 {
+        draw_digit(digits[i], x + (count - i - 1) * 10, y);
+        i = i - 1;
+    }
+}
+
+fn draw_digit(digit: i32, x: i32, y: i32) {
+    match digit {
+        0 => {
+            draw_rect(x, y, 8, 2, 255, 255, 255);
+            draw_rect(x, y + 8, 8, 2, 255, 255, 255);
+            draw_rect(x, y, 2, 10, 255, 255, 255);
+            draw_rect(x + 6, y, 2, 10, 255, 255, 255);
+        }
+        1 => {
+            draw_rect(x + 3, y, 2, 10, 255, 255, 255);
+        }
+        2 => {
+            draw_rect(x, y, 8, 2, 255, 255, 255);
+            draw_rect(x + 6, y, 2, 5, 255, 255, 255);
+            draw_rect(x, y + 4, 8, 2, 255, 255, 255);
+            draw_rect(x, y + 4, 2, 5, 255, 255, 255);
+            draw_rect(x, y + 8, 8, 2, 255, 255, 255);
+        }
+        // Можно добавить остальные цифры...
+        _ => {
+            draw_rect(x, y, 8, 10, 255, 255, 255);
+        }
+    }
+}

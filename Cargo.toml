@@ -1,0 +1,43 @@
+[package]
+name = "aetos-compiler"
+version = "0.3.0"
+edition = "2021"
+
+[[bin]]
+name = "aetosc"
+path = "src/main.rs"
+
+[[bin]]
+name = "aetos-visual-editor"
+path = "src/visual_editor/main.rs"
+
+[dependencies]
+logos = "0.13"
+log = "0.4"
+pretty = "0.12"
+thiserror = "1.0"
+wasm-encoder = "0.39"
+clap = { version = "4.5", features = ["derive"] }
+tempfile = "3.4"
+minifb = "0.24"
+rand = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Для визуального редактора
+eframe = { version = "0.27", optional = true }
+egui = { version = "0.27", optional = true }
+env_logger = { version = "0.10", optional = true }
+
+[features]
+default = ["native", "visual-editor"]
+native = []
+wasm = []
+visual-editor = ["dep:eframe", "dep:egui", "dep:env_logger"]
+
+[dev-dependencies]
+assert_matches = "1.5"
+
+[lib]
+name = "aetos"
+path = "src/lib.rs"

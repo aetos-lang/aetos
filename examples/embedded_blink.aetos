@@ -1,0 +1,20 @@
+// Embedded blink example for STM32
+fn main() -> i32 {
+    let led_pin: i32 = 13;
+    
+    // Initialize LED pin as output
+    gpio_set(led_pin, 1); // mode 1 = Output
+    
+    // Blink loop
+    loop {
+        gpio_toggle(led_pin);
+        delay(1000); // 1 second delay
+    }
+    
+    return 0;
+}
+
+// External functions provided by HAL
+extern fn gpio_set(pin: i32, mode: i32) -> void;
+extern fn gpio_toggle(pin: i32) -> void;
+extern fn delay(ms: i32) -> void;

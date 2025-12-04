@@ -1,0 +1,42 @@
+fn main() -> i32 {
+    let x: i32 = 100;
+    let y: i32 = 100;
+    let speed_x: i32 = 2;
+    let speed_y: i32 = 3;
+    
+    // Инициализируем графику
+    init_graphics(800, 600, "Simple Graphics Demo");
+    
+    // Основной цикл
+    while true {
+        // Очищаем экран
+        clear_screen(0, 0, 0);
+        
+        // Обновляем позицию
+        x = x + speed_x;
+        y = y + speed_y;
+        
+        // Проверяем границы
+        if x <= 0 || x >= 800 {
+            speed_x = -speed_x;
+        }
+        if y <= 0 || y >= 600 {
+            speed_y = -speed_y;
+        }
+        
+        // Рисуем мяч
+        draw_circle(x, y, 20, 255, 100, 100);
+        
+        // Рисуем статичные объекты
+        draw_rect(50, 50, 100, 30, 100, 200, 100);
+        draw_line(700, 100, 750, 200, 100, 100, 255);
+        
+        // Отображаем кадр
+        render();
+        
+        // Небольшая задержка
+        sleep(16);
+    }
+    
+    return 0;
+}

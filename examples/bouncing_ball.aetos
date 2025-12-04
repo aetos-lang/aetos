@@ -1,0 +1,58 @@
+struct Point {
+    x: i32,
+    y: i32
+}
+
+struct Color {
+    r: i32,
+    g: i32,
+    b: i32
+}
+
+fn main() -> i32 {
+    init_graphics(800, 600, "Bouncing Ball");
+    
+    let ball_x: i32 = 400;
+    let ball_y: i32 = 300;
+    let ball_radius: i32 = 20;
+    let ball_speed_x: i32 = 5;
+    let ball_speed_y: i32 = 4;
+    
+    let background: Color = rgb(30, 30, 50);
+    let ball_color: Color = rgb(255, 100, 100);
+    
+    while true {
+        clear_screen(background);
+        
+        // Обновляем позицию мяча
+        let new_x: i32 = ball_x + ball_speed_x;
+        let new_y: i32 = ball_y + ball_speed_y;
+        
+        // Проверяем столкновения со стенами
+        let next_speed_x: i32 = if new_x - ball_radius < 0 || new_x + ball_radius > 800 {
+            -ball_speed_x
+        } else {
+            ball_speed_x
+        };
+        
+        let next_speed_y: i32 = if new_y - ball_radius < 0 || new_y + ball_radius > 600 {
+            -ball_speed_y
+        } else {
+            ball_speed_y
+        };
+        
+        // Рисуем мяч
+        draw_circle(new_x, new_y, ball_radius, ball_color);
+        
+        render();
+        sleep(16); // ~60 FPS
+        
+        // Обновляем переменные для следующего кадра
+        ball_x = new_x;
+        ball_y = new_y;
+        ball_speed_x = next_speed_x;
+        ball_speed_y = next_speed_y;
+    }
+    
+    return 0;
+}

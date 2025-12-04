@@ -1,0 +1,13 @@
+fn main() -> void {
+    let x: i32 = 42;
+    print_i32(x);
+    
+    let message: string = "Hello, Aetos!";
+    print_string(message);
+    
+    let counter: i32 = 0;
+    while counter < 3 {
+        print_i32(counter);
+        counter = counter + 1;
+    }
+}

@@ -1,0 +1,64 @@
+struct Particle {
+    x: f32,
+    y: f32,
+    vx: f32,
+    vy: f32,
+    life: i32
+}
+
+fn main() -> i32 {
+    init_graphics(800, 600, "Particles Demo");
+    
+    let particles: [Particle; 100];
+    let max_life: i32 = 100;
+    
+    // Инициализируем частицы
+    let i: i32 = 0;
+    while i < 100 {
+        particles[i] = Particle {
+            x: 400.0,
+            y: 300.0,
+            vx: (random() % 100 - 50) / 10.0,
+            vy: (random() % 100 - 50) / 10.0,
+            life: max_life
+        };
+        i = i + 1;
+    }
+    
+    while true {
+        clear_screen(rgb(0, 0, 0));
+        
+        // Обновляем и рисуем частицы
+        let i: i32 = 0;
+        while i < 100 {
+            if particles[i].life > 0 {
+                // Обновляем позицию
+                particles[i].x = particles[i].x + particles[i].vx;
+                particles[i].y = particles[i].y + particles[i].vy;
+                particles[i].life = particles[i].life - 1;
+                
+                // Вычисляем цвет based on life
+                let life_ratio: f32 = particles[i].life / max_life as f32;
+                let color: Color = rgb(
+                    (255 * life_ratio) as i32,
+                    (100 * life_ratio) as i32,
+                    (50 * life_ratio) as i32
+                );
+                
+                // Рисуем частицу
+                draw_circle(
+                    particles[i].x as i32, 
+                    particles[i].y as i32, 
+                    2, 
+                    color
+                );
+            }
+            i = i + 1;
+        }
+        
+        render();
+        sleep(33); // ~30 FPS
+    }
+    
+    return 0;
+}

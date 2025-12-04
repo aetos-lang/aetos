@@ -1,0 +1,146 @@
+// examples/analog_clock_fixed.aetos
+
+struct Point {
+    x: i32,
+    y: i32
+}
+
+struct Color {
+    r: i32,
+    g: i32,
+    b: i32
+}
+
+fn rgb(r: i32, g: i32, b: i32) -> Color {
+    return Color { r: r, g: g, b: b };
+}
+
+// Теперь можно использовать присваивание в simple_sin
+fn simple_sin(angle: f32) -> f32 {
+    // Простая нормализация угла через математические операции
+    let pi: f32 = 3.1415926535;
+    let two_pi: f32 = 6.283185307;
+    
+    // Нормализация угла с использованием присваивания
+    let cycles: f32 = angle / two_pi;
+    let integer_part: f32 = (cycles as i32) as f32;
+    let mut normalized: f32 = angle - integer_part * two_pi; // mutable переменная
+    
+    // Корректируем угол если нужно
+    if normalized > pi {
+        normalized = normalized - two_pi;
+    }
+    if normalized < -pi {
+        normalized = normalized + two_pi;
+    }
+    
+    // Ряд Тейлора для sin(x)
+    let x2: f32 = normalized * normalized;
+    let x3: f32 = x2 * normalized;
+    let x5: f32 = x3 * x2;
+    let x7: f32 = x5 * x2;
+    
+    return normalized - x3/6.0 + x5/120.0 - x7/5040.0;
+}
+
+fn simple_cos(angle: f32) -> f32 {
+    return simple_sin(angle + 1.570796327);
+}
+
+fn main() -> i32 {
+    init_graphics(600, 600, "Analog Clock");
+    
+    let center: Point = Point { x: 300, y: 300 };
+    let radius: i32 = 200;
+    
+    let start_time: f32 = get_time();
+    
+    while true {
+        // Полностью очищаем экран
+        clear_screen(10, 10, 30);
+        
+        // Рисуем циферблат
+        draw_circle(center.x, center.y, radius, 80, 80, 120);
+        draw_circle(center.x, center.y, radius - 2, 20, 20, 40);
+        
+        // Рисуем метки часов
+        let mut i: i32 = 0; // mutable для цикла
+        while i < 12 {
+            let angle_deg: f32 = i as f32 * 30.0;
+            let angle_rad: f32 = angle_deg * 0.01745329252;
+            
+            let inner_dist: i32 = radius - 15;
+            let outer_dist: i32 = radius - 5;
+            
+            let cos_val: f32 = simple_cos(angle_rad);
+            let sin_val: f32 = simple_sin(angle_rad);
+            
+            let inner_x: i32 = center.x + (cos_val * inner_dist as f32) as i32;
+            let inner_y: i32 = center.y + (sin_val * inner_dist as f32) as i32;
+            let outer_x: i32 = center.x + (cos_val * outer_dist as f32) as i32;
+            let outer_y: i32 = center.y + (sin_val * outer_dist as f32) as i32;
+            
+            // Толстые метки для основных часов
+            if i % 3 == 0 { draw_line(inner_x, inner_y, outer_x, outer_y, 255, 255, 200); }
+            if i % 3 != 0 { draw_line(inner_x, inner_y, outer_x, outer_y, 200, 200, 200); }
+            
+            // Дополнительные линии для толстых меток
+            if i % 3 == 0 { draw_line(inner_x+1, inner_y, outer_x+1, outer_y, 255, 255, 200); }
+            if i % 3 == 0 { draw_line(inner_x, inner_y+1, outer_x, outer_y+1, 255, 255, 200); }
+            
+            i = i + 1; // теперь это работает!
+        }
+        
+        // Получаем текущее время
+        let current_time: f32 = get_time() - start_time;
+        
+        // Вычисляем углы для стрелок (нормализуем время)
+        let seconds_total: f32 = current_time;
+        let seconds: f32 = seconds_total - (seconds_total / 60.0).floor() * 60.0;
+        let minutes_total: f32 = seconds_total / 60.0;
+        let minutes: f32 = minutes_total - (minutes_total / 60.0).floor() * 60.0;
+        let hours_total: f32 = minutes_total / 60.0;
+        let hours: f32 = hours_total - (hours_total / 12.0).floor() * 12.0;
+        
+        // Секундная стрелка (полный оборот за 60 секунд)
+        let second_angle: f32 = (seconds * 6.0 - 90.0) * 0.01745329252;
+        let second_len: i32 = radius - 30;
+        let second_x: i32 = center.x + (simple_cos(second_angle) * second_len as f32) as i32;
+        let second_y: i32 = center.y + (simple_sin(second_angle) * second_len as f32) as i32;
+        
+        // Минутная стрелка (полный оборот за 60 минут)
+        let minute_angle: f32 = (minutes * 6.0 - 90.0) * 0.01745329252;
+        let minute_len: i32 = radius - 50;
+        let minute_x: i32 = center.x + (simple_cos(minute_angle) * minute_len as f32) as i32;
+        let minute_y: i32 = center.y + (simple_sin(minute_angle) * minute_len as f32) as i32;
+        
+        // Часовая стрелка (полный оборот за 12 часов)
+        let hour_angle: f32 = (hours * 30.0 - 90.0) * 0.01745329252;
+        let hour_len: i32 = radius - 80;
+        let hour_x: i32 = center.x + (simple_cos(hour_angle) * hour_len as f32) as i32;
+        let hour_y: i32 = center.y + (simple_sin(hour_angle) * hour_len as f32) as i32;
+        
+        // Рисуем стрелки (с небольшой толщиной)
+        
+        // Часовая стрелка (синяя, толстая)
+        draw_line(center.x, center.y, hour_x, hour_y, 100, 100, 255);
+        draw_line(center.x+1, center.y, hour_x+1, hour_y, 100, 100, 255);
+        draw_line(center.x, center.y+1, hour_x, hour_y+1, 100, 100, 255);
+        
+        // Минутная стрелка (зеленая)
+        draw_line(center.x, center.y, minute_x, minute_y, 100, 255, 100);
+        draw_line(center.x+1, center.y, minute_x+1, minute_y, 100, 255, 100);
+        
+        // Секундная стрелка (красная)
+        draw_line(center.x, center.y, second_x, second_y, 255, 100, 100);
+        
+        // Центр часов
+        draw_circle(center.x, center.y, 8, 255, 255, 255);
+        draw_circle(center.x, center.y, 6, 100, 100, 150);
+        
+        render();
+        sleep(16); // ~60 FPS
+    }
+    
+    return 0;
+}

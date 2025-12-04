@@ -1,0 +1,11 @@
+// Простая программа без зависимостей от внешних функций
+fn main() -> i32 {
+    let x: i32 = 5;
+    let y: i32 = 3;
+    let result: i32 = add(x, y);
+    return result;
+}
+
+fn add(a: i32, b: i32) -> i32 {
+    return a + b;
+}

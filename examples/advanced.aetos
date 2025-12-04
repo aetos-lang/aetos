@@ -1,0 +1,55 @@
+// Пример с структурами и циклами
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+struct Rectangle {
+    top_left: Point,
+    width: i32,
+    height: i32,
+}
+
+fn main() -> i32 {
+    // Создаем точку
+    let origin: Point = Point { x: 0, y: 0 };
+    
+    // Создаем прямоугольник
+    let rect: Rectangle = Rectangle {
+        top_left: origin,
+        width: 10,
+        height: 20,
+    };
+    
+    // Вычисляем площадь
+    let area: i32 = rect.width * rect.height;
+    
+    // Используем цикл для демонстрации
+    let mut counter: i32 = 0;
+    let mut sum: i32 = 0;
+    
+    while counter < 5 {
+        sum = sum + counter;
+        counter = counter + 1;
+    }
+    
+    return area + sum;
+}
+
+// Функция с условиями
+fn max(a: i32, b: i32) -> i32 {
+    if a > b {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+// Рекурсивная функция
+fn factorial(n: i32) -> i32 {
+    if n <= 1 {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}

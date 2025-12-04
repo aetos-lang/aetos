@@ -1,0 +1,77 @@
+struct Complex {
+    real: f32,
+    imag: f32
+}
+
+fn main() -> i32 {
+    init_graphics(800, 600, "Mandelbrot Fractal");
+    
+    let width: i32 = 800;
+    let height: i32 = 600;
+    let max_iterations: i32 = 100;
+    
+    let zoom: f32 = 1.0;
+    let offset_x: f32 = 0.0;
+    let offset_y: f32 = 0.0;
+    
+    while true {
+        clear_screen(0, 0, 0);
+        
+        let x: i32 = 0;
+        while x < width {
+            let y: i32 = 0;
+            while y < height {
+                // Преобразуем координаты пикселя в координаты комплексной плоскости
+                let cx: f32 = (x - width / 2) as f32 * 0.01 * zoom + offset_x;
+                let cy: f32 = (y - height / 2) as f32 * 0.01 * zoom + offset_y;
+                
+                let c: Complex = Complex { real: cx, imag: cy };
+                let z: Complex = Complex { real: 0.0, imag: 0.0 };
+                
+                let iteration: i32 = 0;
+                let in_set: bool = true;
+                
+                while iteration < max_iterations {
+                    // z = z^2 + c
+                    let new_real: f32 = z.real * z.real - z.imag * z.imag + c.real;
+                    let new_imag: f32 = 2.0 * z.real * z.imag + c.imag;
+                    
+                    z.real = new_real;
+                    z.imag = new_imag;
+                    
+                    // Если точка уходит в бесконечность
+                    if z.real * z.real + z.imag * z.imag > 4.0 {
+                        in_set = false;
+                        break;
+                    }
+                    
+                    iteration = iteration + 1;
+                }
+                
+                if in_set {
+                    // Точка в множестве Мандельброта - черная
+                    draw_pixel(x, y, 0, 0, 0);
+                } else {
+                    // Точка не в множестве - цвет зависит от количества итераций
+                    let color_val: i32 = iteration * 255 / max_iterations;
+                    draw_pixel(x, y, color_val, color_val / 2, 255 - color_val);
+                }
+                
+                y = y + 1;
+            }
+            x = x + 1;
+        }
+        
+        render();
+        
+        // Меняем масштаб для анимации
+        zoom = zoom * 0.99;
+        if zoom < 0.001 {
+            zoom = 1.0;
+        }
+        
+        sleep(100);
+    }
+    
+    return 0;
+}

@@ -1,0 +1,173 @@
+struct Paddle {
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+    speed: i32
+}
+
+struct Ball {
+    x: i32,
+    y: i32,
+    radius: i32,
+    dx: i32,
+    dy: i32
+}
+
+fn main() -> i32 {
+    init_graphics(800, 600, "Pong Game");
+    
+    let player: Paddle = Paddle { 
+        x: 50, 
+        y: 250, 
+        width: 20, 
+        height: 100, 
+        speed: 5 
+    };
+    
+    let enemy: Paddle = Paddle { 
+        x: 730, 
+        y: 250, 
+        width: 20, 
+        height: 100, 
+        speed: 4 
+    };
+    
+    let ball: Ball = Ball { 
+        x: 400, 
+        y: 300, 
+        radius: 10, 
+        dx: 4, 
+        dy: 3 
+    };
+    
+    let player_score: i32 = 0;
+    let enemy_score: i32 = 0;
+    
+    while true {
+        // Управление игроком
+        if is_key_pressed(87) && player.y > 0 { // W
+            player.y = player.y - player.speed;
+        }
+        if is_key_pressed(83) && player.y < 500 { // S
+            player.y = player.y + player.speed;
+        }
+        
+        // AI противника
+        if ball.y < enemy.y + enemy.height / 2 && enemy.y > 0 {
+            enemy.y = enemy.y - enemy.speed;
+        }
+        if ball.y > enemy.y + enemy.height / 2 && enemy.y < 500 {
+            enemy.y = enemy.y + enemy.speed;
+        }
+        
+        // Движение мяча
+        ball.x = ball.x + ball.dx;
+        ball.y = ball.y + ball.dy;
+        
+        // Столкновение со стенами
+        if ball.y <= 0 || ball.y >= 590 {
+            ball.dy = -ball.dy;
+        }
+        
+        // Столкновение с ракетками
+        if ball.x <= player.x + player.width && 
+           ball.y >= player.y && 
+           ball.y <= player.y + player.height {
+            ball.dx = -ball.dx;
+            ball.x = player.x + player.width;
+        }
+        
+        if ball.x >= enemy.x - ball.radius && 
+           ball.y >= enemy.y && 
+           ball.y <= enemy.y + enemy.height {
+            ball.dx = -ball.dx;
+            ball.x = enemy.x - ball.radius;
+        }
+        
+        // Голы
+        if ball.x < 0 {
+            enemy_score = enemy_score + 1;
+            ball.x = 400;
+            ball.y = 300;
+            ball.dx = 4;
+            ball.dy = 3;
+        }
+        
+        if ball.x > 800 {
+            player_score = player_score + 1;
+            ball.x = 400;
+            ball.y = 300;
+            ball.dx = -4;
+            ball.dy = 3;
+        }
+        
+        // Отрисовка
+        clear_screen(0, 0, 0);
+        
+        // Рисуем центральную линию
+        let i: i32 = 0;
+        while i < 600 {
+            if i % 30 < 15 {
+                draw_rect(398, i, 4, 15, 100, 100, 100);
+            }
+            i = i + 30;
+        }
+        
+        // Рисуем ракетки
+        draw_rect(player.x, player.y, player.width, player.height, 0, 255, 0);
+        draw_rect(enemy.x, enemy.y, enemy.width, enemy.height, 255, 0, 0);
+        
+        // Рисуем мяч
+        draw_circle(ball.x, ball.y, ball.radius, 255, 255, 255);
+        
+        // Рисуем счет
+        draw_score(player_score, enemy_score);
+        
+        render();
+        sleep(16);
+    }
+    
+    return 0;
+}
+
+fn draw_score(player: i32, enemy: i32) {
+    // Простая отрисовка счета
+    let x: i32 = 350;
+    let y: i32 = 50;
+    
+    // Игрок
+    draw_number(player, x - 50, y);
+    
+    // Разделитель
+    draw_rect(x, y, 4, 20, 255, 255, 255);
+    
+    // Противник
+    draw_number(enemy, x + 50, y);
+}
+
+fn draw_number(num: i32, x: i32, y: i32) {
+    // Простая отрисовка цифр 0-9
+    match num {
+        0 => {
+            draw_rect(x, y, 20, 4, 255, 255, 255);
+            draw_rect(x, y + 16, 20, 4, 255, 255, 255);
+            draw_rect(x, y, 4, 20, 255, 255, 255);
+            draw_rect(x + 16, y, 4, 20, 255, 255, 255);
+        }
+        1 => {
+            draw_rect(x + 8, y, 4, 20, 255, 255, 255);
+        }
+        2 => {
+            draw_rect(x, y, 20, 4, 255, 255, 255);
+            draw_rect(x + 16, y, 4, 10, 255, 255, 255);
+            draw_rect(x, y + 8, 20, 4, 255, 255, 255);
+            draw_rect(x, y + 8, 4, 10, 255, 255, 255);
+            draw_rect(x, y + 16, 20, 4, 255, 255, 255);
+        }
+        // Можно добавить остальные цифры...
+        _ => {
+            draw_rect(x, y, 20, 20, 255, 255, 255);
+        }
+    }
+}
